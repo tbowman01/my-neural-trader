@@ -11,6 +11,17 @@ A learning and analysis platform for stock trading using neural-trader, with AI-
 - **Risk Management**: VaR, CVaR, Kelly Criterion, drawdown analysis
 - **High Performance**: Rust core with 8-19x faster execution than Python
 
+### Stage 2: Adaptation Infrastructure (NEW)
+
+- **A/B Testing**: Statistical validation of new models before deployment
+- **Shadow Mode**: Risk-free parallel testing of candidate models
+- **Model Versioning**: Complete version history with rollback capability
+- **Performance Tracking**: Continuous accuracy monitoring and degradation detection
+- **Auto-Retraining**: Scheduled weekly model updates
+- **Monitoring Dashboard**: Real-time HTML dashboard with system health metrics
+- **Multi-Channel Alerting**: Email, Slack, and console notifications for critical events
+- **Automated Deployment**: Deploy only statistically-proven better models
+
 ## Quick Start
 
 ### 1. Install Dependencies
@@ -145,6 +156,88 @@ const result = await engine.run(signals, JSON.stringify({ bars }));
 console.log(`Total Return: ${(result.metrics.totalReturn * 100).toFixed(2)}%`);
 console.log(`Sharpe Ratio: ${result.metrics.sharpeRatio.toFixed(2)}`);
 console.log(`Win Rate: ${(result.metrics.winRate * 100).toFixed(1)}%`);
+```
+
+### A/B Testing and Model Management
+
+Stage 2 provides production-ready infrastructure for safely deploying improved models:
+
+```bash
+# 1. Train new models weekly
+node scripts/weekly-retrain.js
+
+# 2. Start shadow mode (7-day A/B test)
+node scripts/run-shadow-mode.js v20251208_0000 7
+
+# 3. Generate monitoring dashboard
+node scripts/generate-dashboard.js
+
+# 4. End shadow mode and auto-deploy if better
+node scripts/end-shadow-mode.js test_1732483200_abc123 --auto-deploy
+```
+
+**Shadow Mode Example:**
+
+```javascript
+const ABTesting = require('./lib/ab-testing');
+const abTesting = new ABTesting();
+
+// Start 7-day A/B test
+const shadowConfig = await abTesting.startShadowMode('v20251208_0000', 7);
+
+// Both models make predictions in parallel
+// Production model controls live decisions
+// Candidate model runs in shadow (no impact)
+
+// After 7 days, evaluate results
+const results = await abTesting.endShadowMode(shadowConfig.testId);
+
+console.log(`Production Accuracy: ${results.productionMetrics.accuracyPercent}%`);
+console.log(`Candidate Accuracy: ${results.candidateMetrics.accuracyPercent}%`);
+console.log(`P-Value: ${results.comparison.pValue}`);
+console.log(`Recommendation: ${results.recommendation.decision}`);
+
+// Auto-deploy if statistically better
+if (results.recommendation.decision === 'DEPLOY') {
+  await abTesting.autoDeploy(shadowConfig.testId);
+}
+```
+
+**Monitoring Dashboard:**
+
+```bash
+# Generate real-time dashboard
+node scripts/generate-dashboard.js --output dashboard.html
+
+# Open in browser
+open dashboard.html
+```
+
+Dashboard includes:
+- Performance metrics (accuracy, confidence, predictions)
+- System health (degradation status, production version)
+- Alert summary (last 7 days by severity)
+- Model version history
+- A/B test results
+
+**Alerting Example:**
+
+```javascript
+const AlertingSystem = require('./lib/alerting');
+const alerting = new AlertingSystem({
+  alertEmail: 'admin@example.com',
+  slackWebhook: 'https://hooks.slack.com/services/...',
+  degradationThreshold: 0.05  // 5% accuracy drop
+});
+
+// Monitor performance
+const tracker = new PerformanceTracker();
+const degradation = tracker.detectDegradation();
+
+if (degradation.degraded) {
+  // Send multi-channel alert
+  await alerting.alertPerformanceDegradation(degradation);
+}
 ```
 
 ## Available Brokers
@@ -290,10 +383,19 @@ The `config.json` file is pre-configured for prediction markets (Polymarket, Kal
 
 ## Documentation
 
+### Neural Trader Core
+
 - [Neural Trader Documentation](https://neural-trader.ruv.io)
 - [GitHub Repository](https://github.com/ruvnet/neural-trader)
 - [API Reference](https://www.npmjs.com/package/neural-trader)
 - [Alpaca Documentation](https://alpaca.markets/docs/)
+
+### Stage 2: Adaptation Infrastructure
+
+- [User Guide](docs/USER-GUIDE.md) - Complete guide to A/B testing, monitoring, and alerting
+- [Implementation Plan](docs/STAGE2-IMPLEMENTATION-PLAN.md) - Technical implementation details
+- [Phases 3-4 Completion](docs/STAGE2-PHASES-3-4-COMPLETION.md) - A/B testing and monitoring implementation summary
+- [Deployment Guide](docs/DEPLOYMENT-GUIDE.md) - Production deployment instructions
 
 ## Support
 
