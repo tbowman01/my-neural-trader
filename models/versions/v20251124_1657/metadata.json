@@ -1,0 +1,11 @@
+{
+  "versionId": "v20251124_1657",
+  "timestamp": "2025-11-24T21:57:41.766Z",
+  "numModels": 5,
+  "gitCommit": "1fa30ef",
+  "gitBranch": "claude/install-neural-trade-01WirrkVRzte4QySCWtpi6aM",
+  "description": "Initial production version",
+  "source": "manual-setup",
+  "baselineEnsembleConfidence": 0.594,
+  "notes": "Created via setup-production.js"
+}

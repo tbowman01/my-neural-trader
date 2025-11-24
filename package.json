@@ -1,0 +1,11 @@
+{
+  "name": "my-prediction-markets-project",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "@tensorflow/tfjs-node-gpu": "^4.22.0",
+    "neural-trader": "^2.3.11",
+    "yahoo-finance2": "^3.10.2"
+  }
+}

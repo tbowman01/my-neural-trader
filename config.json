@@ -1,0 +1,29 @@
+{
+  "predictionMarkets": {
+    "polymarket": {
+      "enabled": true,
+      "graphqlEndpoint": "https://api.goldsky.com/api/public/project_cl6mb8i9h0003e201j6li0diw/subgraphs/orderbook-subgraph/0.0.1/gn",
+      "restApi": "https://gamma-api.polymarket.com/",
+      "rateLimits": {
+        "graphql": "100k queries/month (free)",
+        "rest": "1000 calls/hour for non-trading queries"
+      }
+    },
+    "kalshi": {
+      "enabled": true,
+      "apiUrl": "https://trading-api.kalshi.com",
+      "demoMode": true,
+      "note": "Sign up at kalshi.com/api for API keys and demo account"
+    }
+  },
+  "dataProviders": {
+    "theGraph": {
+      "polymarketSubgraph": "https://thegraph.com/explorer/subgraphs/polymarket",
+      "freeTier": "100k queries/month"
+    },
+    "bitquery": {
+      "enabled": false,
+      "note": "GraphQL queries for blockchain data - check bitquery.io for free tier"
+    }
+  }
+}
