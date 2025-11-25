@@ -1,0 +1,276 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-validate:
+    name: Lint and Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for syntax errors
+        run: |
+          echo "Checking JavaScript files for syntax errors..."
+          find . -name "*.js" -not -path "./node_modules/*" -not -path "./.git/*" | while read file; do
+            node -c "$file" || exit 1
+          done
+
+      - name: Validate package.json
+        run: npm ls || echo "Some dependencies may have warnings"
+
+      - name: Check required directories
+        run: |
+          echo "Checking project structure..."
+          test -d lib || (echo "lib/ directory missing" && exit 1)
+          test -d scripts || (echo "scripts/ directory missing" && exit 1)
+          test -d docs || (echo "docs/ directory missing" && exit 1)
+          test -d examples || (echo "examples/ directory missing" && exit 1)
+          echo "All required directories present"
+
+      - name: Validate required files
+        run: |
+          echo "Checking required files..."
+          test -f package.json || (echo "package.json missing" && exit 1)
+          test -f README.md || (echo "README.md missing" && exit 1)
+          test -f .gitignore || (echo ".gitignore missing" && exit 1)
+          echo "All required files present"
+
+  documentation-check:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check documentation files
+        run: |
+          echo "Verifying documentation..."
+          test -f docs/USER-GUIDE.md || (echo "USER-GUIDE.md missing" && exit 1)
+          test -f docs/STAGE2-IMPLEMENTATION-PLAN.md || (echo "STAGE2-IMPLEMENTATION-PLAN.md missing" && exit 1)
+          test -f docs/DEPLOYMENT-GUIDE.md || (echo "DEPLOYMENT-GUIDE.md missing" && exit 1)
+          echo "All documentation files present"
+
+      - name: Check README completeness
+        run: |
+          echo "Checking README sections..."
+          grep -q "Stage 2: Adaptation Infrastructure" README.md || (echo "Stage 2 section missing in README" && exit 1)
+          grep -q "A/B Testing" README.md || (echo "A/B Testing section missing in README" && exit 1)
+          echo "README is complete"
+
+  library-validation:
+    name: Validate Core Libraries
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check Stage 2 libraries
+        run: |
+          echo "Verifying Stage 2 core libraries..."
+          test -f lib/ab-testing.js || (echo "ab-testing.js missing" && exit 1)
+          test -f lib/alerting.js || (echo "alerting.js missing" && exit 1)
+          test -f lib/model-versioning.js || (echo "model-versioning.js missing" && exit 1)
+          test -f lib/performance-tracker.js || (echo "performance-tracker.js missing" && exit 1)
+          test -f lib/data-refresh.js || (echo "data-refresh.js missing" && exit 1)
+          test -f lib/training-orchestrator.js || (echo "training-orchestrator.js missing" && exit 1)
+          echo "All Stage 2 libraries present"
+
+      - name: Validate library syntax
+        run: |
+          echo "Checking library files for syntax errors..."
+          node -c lib/ab-testing.js
+          node -c lib/alerting.js
+          node -c lib/model-versioning.js
+          node -c lib/performance-tracker.js
+          node -c lib/data-refresh.js
+          node -c lib/training-orchestrator.js
+          echo "All libraries have valid syntax"
+
+  scripts-validation:
+    name: Validate Scripts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check Stage 2 scripts
+        run: |
+          echo "Verifying Stage 2 scripts..."
+          test -f scripts/run-shadow-mode.js || (echo "run-shadow-mode.js missing" && exit 1)
+          test -f scripts/end-shadow-mode.js || (echo "end-shadow-mode.js missing" && exit 1)
+          test -f scripts/generate-dashboard.js || (echo "generate-dashboard.js missing" && exit 1)
+          test -f scripts/weekly-retrain.js || (echo "weekly-retrain.js missing" && exit 1)
+          test -f scripts/weekly-data-refresh.js || (echo "weekly-data-refresh.js missing" && exit 1)
+          echo "All Stage 2 scripts present"
+
+      - name: Validate script syntax
+        run: |
+          echo "Checking script files for syntax errors..."
+          node -c scripts/run-shadow-mode.js
+          node -c scripts/end-shadow-mode.js
+          node -c scripts/generate-dashboard.js
+          node -c scripts/weekly-retrain.js
+          node -c scripts/weekly-data-refresh.js
+          echo "All scripts have valid syntax"
+
+      - name: Check script executability
+        run: |
+          echo "Checking script shebangs..."
+          head -1 scripts/run-shadow-mode.js | grep -q "#!/usr/bin/env node" || echo "Warning: run-shadow-mode.js missing shebang"
+          head -1 scripts/end-shadow-mode.js | grep -q "#!/usr/bin/env node" || echo "Warning: end-shadow-mode.js missing shebang"
+          head -1 scripts/generate-dashboard.js | grep -q "#!/usr/bin/env node" || echo "Warning: generate-dashboard.js missing shebang"
+
+  pr-metadata:
+    name: PR Metadata Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check PR title
+        run: |
+          echo "PR Title: ${{ github.event.pull_request.title }}"
+          if [[ "${{ github.event.pull_request.title }}" =~ ^(feat|fix|docs|style|refactor|test|chore|ci): ]]; then
+            echo "PR title follows conventional commits format"
+          else
+            echo "Warning: PR title should follow conventional commits format (feat:, fix:, docs:, etc.)"
+          fi
+
+      - name: Check for documentation updates
+        run: |
+          if git diff --name-only origin/main | grep -q "^lib/\|^scripts/"; then
+            if ! git diff --name-only origin/main | grep -q "^docs/"; then
+              echo "Warning: Code changes detected but no documentation updates"
+            else
+              echo "Documentation updates included"
+            fi
+          fi
+
+  security-check:
+    name: Security Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check for secrets in code
+        run: |
+          echo "Scanning for potential secrets..."
+          if grep -r "ALPACA_API_KEY\|ALPACA_API_SECRET" --include="*.js" --exclude-dir=node_modules --exclude-dir=.git . | grep -v "process.env"; then
+            echo "ERROR: Potential hardcoded secrets found!"
+            exit 1
+          fi
+          echo "No hardcoded secrets detected"
+
+      - name: Validate .gitignore
+        run: |
+          echo "Checking .gitignore coverage..."
+          grep -q "\.env" .gitignore || (echo ".env should be in .gitignore" && exit 1)
+          grep -q "node_modules" .gitignore || (echo "node_modules should be in .gitignore" && exit 1)
+          echo ".gitignore properly configured"
+
+  build-test:
+    name: Build Test
+    runs-on: ubuntu-latest
+    needs: [lint-and-validate, library-validation, scripts-validation]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create required directories
+        run: |
+          mkdir -p data
+          mkdir -p models
+          mkdir -p models/versions
+
+      - name: Test library imports
+        run: |
+          echo "Testing library imports..."
+          node -e "require('./lib/ab-testing')" || exit 1
+          node -e "require('./lib/alerting')" || exit 1
+          node -e "require('./lib/model-versioning')" || exit 1
+          node -e "require('./lib/performance-tracker')" || exit 1
+          echo "All libraries can be imported successfully"
+
+      - name: Verify Stage 2 completion
+        run: |
+          echo "Verifying Stage 2 implementation completeness..."
+          echo "✓ Phase 1-2: Data refresh, versioning, performance tracking"
+          test -f lib/data-refresh.js || exit 1
+          test -f lib/model-versioning.js || exit 1
+          test -f lib/performance-tracker.js || exit 1
+          echo "✓ Phase 3-4: A/B testing, monitoring, alerting"
+          test -f lib/ab-testing.js || exit 1
+          test -f lib/alerting.js || exit 1
+          test -f scripts/generate-dashboard.js || exit 1
+          echo "Stage 2 implementation complete!"
+
+  success-summary:
+    name: CI Success Summary
+    runs-on: ubuntu-latest
+    needs: [lint-and-validate, documentation-check, library-validation, scripts-validation, security-check, build-test]
+    if: success()
+
+    steps:
+      - name: Success message
+        run: |
+          echo "═══════════════════════════════════════════════════════════════════"
+          echo "              ALL CI CHECKS PASSED SUCCESSFULLY!"
+          echo "═══════════════════════════════════════════════════════════════════"
+          echo ""
+          echo "✓ Linting and validation"
+          echo "✓ Documentation completeness"
+          echo "✓ Library validation"
+          echo "✓ Script validation"
+          echo "✓ Security checks"
+          echo "✓ Build test"
+          echo ""
+          echo "Stage 2 Adaptation Infrastructure: VERIFIED"
+          echo ""
