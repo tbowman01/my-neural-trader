@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neural Trader Dashboard</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Neural Trader</h1>
+    <div class="status">
+      <span id="status-indicator" class="status-dot"></span>
+      <span id="status-text">Connecting...</span>
+      <span id="last-updated"></span>
+    </div>
+  </header>
+
+  <main>
+    <!-- Portfolio Summary -->
+    <section class="card portfolio-summary">
+      <h2>Portfolio Summary</h2>
+      <div class="metrics-grid">
+        <div class="metric">
+          <span class="metric-label">Total Value</span>
+          <span id="total-value" class="metric-value">$0.00</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Cash</span>
+          <span id="cash" class="metric-value">$0.00</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Positions Value</span>
+          <span id="positions-value" class="metric-value">$0.00</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Total Return</span>
+          <span id="total-return" class="metric-value">0.00%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Trading Panel + Charts Row -->
+    <section class="trading-row">
+      <!-- Manual Trading Panel -->
+      <div class="card trading-panel">
+        <h2>Manual Trading</h2>
+        <div class="trade-form">
+          <div class="form-group">
+            <label for="trade-symbol">Symbol</label>
+            <select id="trade-symbol">
+              <option value="">Select symbol...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="trade-shares">Shares</label>
+            <input type="number" id="trade-shares" min="1" value="10" />
+          </div>
+          <div class="form-group">
+            <label>Est. Cost</label>
+            <span id="est-cost" class="est-value">$0.00</span>
+          </div>
+          <div class="trade-buttons">
+            <button id="btn-buy" class="btn btn-buy">BUY</button>
+            <button id="btn-sell" class="btn btn-sell">SELL</button>
+          </div>
+          <div id="trade-message" class="trade-message"></div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="card chart-container">
+        <h2>Portfolio Value</h2>
+        <canvas id="portfolio-chart"></canvas>
+      </div>
+      <div class="card chart-container">
+        <h2>P&L by Trade</h2>
+        <canvas id="pnl-chart"></canvas>
+      </div>
+    </section>
+
+    <!-- Model Thinking Panel -->
+    <section class="card thinking-panel">
+      <div class="thinking-header">
+        <h2>Model Thinking <span class="badge live-badge">LIVE</span></h2>
+        <div class="refresh-control">
+          <label for="refresh-rate">Refresh:</label>
+          <select id="refresh-rate">
+            <option value="1000">1s</option>
+            <option value="2000">2s</option>
+            <option value="5000" selected>5s</option>
+            <option value="10000">10s</option>
+            <option value="30000">30s</option>
+          </select>
+        </div>
+      </div>
+      <div class="thinking-log" id="thinking-log">
+        <div class="empty-state">Waiting for model analysis...</div>
+      </div>
+    </section>
+
+    <!-- Open Positions -->
+    <section class="card">
+      <h2>Open Positions <span id="position-count" class="badge">0/10</span></h2>
+      <div class="table-container">
+        <table id="positions-table">
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Shares</th>
+              <th>Entry Price</th>
+              <th>Current Value</th>
+              <th>P&L</th>
+              <th>Stop Loss</th>
+              <th>Take Profit</th>
+              <th>Entry Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="positions-body">
+            <tr><td colspan="9" class="empty-state">No open positions</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Live Signals -->
+    <section class="card">
+      <h2>Live Trading Signals</h2>
+      <div class="signals-grid" id="signals-container">
+        <div class="empty-state">Loading signals...</div>
+      </div>
+    </section>
+
+    <!-- Trade History -->
+    <section class="card">
+      <h2>Trade History</h2>
+      <div class="trade-stats">
+        <span id="total-trades">0 trades</span>
+        <span id="win-rate">Win Rate: --</span>
+        <span id="total-pnl">Total P&L: $0.00</span>
+      </div>
+      <div class="table-container">
+        <table id="history-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Symbol</th>
+              <th>Shares</th>
+              <th>Price</th>
+              <th>Value</th>
+              <th>P&L</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <tr><td colspan="8" class="empty-state">No trade history</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Neural Trader - Paper Trading System</p>
+  </footer>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

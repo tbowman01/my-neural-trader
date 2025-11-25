@@ -3,9 +3,18 @@
   "version": "1.0.0",
   "private": true,
   "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "trade": "node live-paper-trading.js"
+  },
   "dependencies": {
     "@tensorflow/tfjs-node-gpu": "^4.22.0",
+    "express": "^5.1.0",
     "neural-trader": "^2.3.11",
     "yahoo-finance2": "^3.10.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
   }
 }
